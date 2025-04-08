@@ -2,9 +2,8 @@
 import { useState } from 'react'
 import { Button } from './ui/button'
 import { Loader2 } from 'lucide-react'
-import { toast } from "sonner"
+import { setToast } from "@/lib/toast"
 import { useRouter } from 'next/navigation'
-import { errorMonitor } from 'events'
 
 
 export const LogOutButton = () => {
@@ -20,21 +19,6 @@ export const LogOutButton = () => {
     console.log("Logging out...")
 
     const errorMessage = null;
-
-    const setToast = (type: "success" | "error", title: string, description: string) => {
-      const backgroundColors = {
-        success: "#047857",
-        error: "#B91C1C"
-      }
-
-      toast(title, {
-        description,
-        style: {
-          backgroundColor: backgroundColors[type],
-          color: "white"
-        }
-      })
-    }
 
     if(!errorMessage) {
       setToast("success", "Logged Out!", "You have successfully logged out.")
