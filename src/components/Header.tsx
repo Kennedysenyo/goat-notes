@@ -5,10 +5,11 @@ import { shadow } from '@/styles/utils';
 import { Button } from './ui/button';
 import { DarkModeToggle } from './DarkModeToggle';
 import { LogOutButton } from './LogOutButton';
+import { getUser } from '@/auth/server';
 
-export const Header = () => {
+export const Header = async() => {
 
-  const user = null;
+  const user = await getUser();
 
   return (
     <header className="relative flex h-24 w-full items-center justify-between bg-popover px-3 sm:px-8"
