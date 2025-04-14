@@ -10,7 +10,6 @@ export const setToast = (type: "success" | "error", title: string, description: 
     description,
     style: {
       backgroundColor: backgroundColors[type],
-      color: "white"
     }
   })
 }

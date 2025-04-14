@@ -5,100 +5,100 @@ import { setToast } from "@/lib/toast";
 import { CardContent, CardFooter } from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
-import { useTransition } from "react";
+import { useActionState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { loginAction, signUpAction } from "@/actions/users";
+import { handleSubmit, FormState } from "@/actions/users";
 
 type Props = {
   type: "login" | "signUp";
-}
+};
 
-export const AuthForm = ({type}: Props) => {
-  const isLogginForm = type === "login";
+export const AuthForm = ({ type }: Props) => {
+  const isLoginForm = type === "login";
 
   const router = useRouter();
 
-  const [isPending, startTransition] = useTransition()
+  const initialState: FormState = {
+    errors: {},
+    success: false,
+    errorMessage: null,
+  };
 
-  const handleSubmit = (formData: FormData) => {
-    
-    startTransition(async () => {
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
+  const [state, formAction, isPending] = useActionState(
+    handleSubmit.bind(null, isLoginForm),
+    initialState,
+  );
 
-      let errorMessage;
-      let title;
-      let description;
+  useEffect(() => {
+    if (state.success && !state.errorMessage) {
+      const title = isLoginForm ? "Logged In" : "Signed Up";
 
-      if (isLogginForm) {
-        const result = await loginAction(email, password);
-        errorMessage = result.errorMessage;
-        
-        if (!errorMessage) {
-          setToast("success", "Logged In", "You have been successfully logged in");
-          router.replace("/");
-          return;
-        }
+      const description = isLoginForm
+        ? "You have successfully logged in"
+        : "Check your email for confirmation link.";
 
-        setToast("error", "Login Failed", errorMessage);
-      } else {
-        const result = await signUpAction(email, password);
-        errorMessage = result.errorMessage;
+      setToast("success", title, description);
 
-        if (!errorMessage) {
-          setToast("success", "Signed Up", "Check your email for a confirmation link.");
-          router.replace("/");
-          return;
-        }
-
-        setToast("error", "Sign Up Failed", errorMessage);
-      }
-
-    })
-  }
+      router.replace("/");
+    } else if (state.errorMessage) {
+      setToast("error", "Error", state.errorMessage);
+    }
+  }, [state, isLoginForm, router]);
 
   return (
-    <form action={handleSubmit}>
+    <form action={formAction}>
       <CardContent className="grid w-full items-center gap-4">
         <div className="flex flex-col space-y-1.5">
           <Label htmlFor="email">Email</Label>
           <Input
-           id="email"
-           name="email"
-           type="email"
-           placeholder="Enter your email"
-           required
-           disabled={isPending}
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            disabled={isPending}
           />
+          {state.errors.email && (
+            <p className="text-xs text-red-500">{state.errors.email}</p>
+          )}
         </div>
         <div className="flex flex-col space-y-1.5">
           <Label htmlFor="password">Password</Label>
           <Input
-           id="password"
-           name="password"
-           type="password"
-           placeholder="Enter your password"
-           required
-           disabled={isPending}
+            id="password"
+            name="password"
+            type="password"
+            placeholder="Enter your password"
+            disabled={isPending}
           />
+          {state.errors.password && (
+            <p className="text-xs text-red-500">{state.errors.password}</p>
+          )}
         </div>
       </CardContent>
       <CardFooter className="mt-5 flex flex-col gap-6">
-        <Button className="w-full">
-          {isPending ? 
-          <Loader2 className="animate-spin" /> : isLogginForm ? 
-          "Login" : "Sign Up"}
+        <Button className="w-full" disabled={isPending} type="submit">
+          {isPending ? (
+            <Loader2 className="animate-spin" />
+          ) : isLoginForm ? (
+            "Login"
+          ) : (
+            "Sign Up"
+          )}
         </Button>
         <p className="text-xs">
-          {isLogginForm ? "Don't have an account yet?" : "Already have an account?"}{" "}
-          <Link href={isLogginForm ? "/sign-up": "/login"} className={`text-blue-500 ${isPending ? "pointer-events-none opacity-50" : ""}`} >
-            {isLogginForm ? "Sign Up" : "Login"}
+          {isLoginForm
+            ? "Don't have an account yet?"
+            : "Already have an account?"}{" "}
+          <Link
+            href={isLoginForm ? "/sign-up" : "/login"}
+            className={`text-blue-500 ${isPending ? "pointer-events-none opacity-50" : ""}`}
+          >
+            {isLoginForm ? "Sign Up" : "Login"}
           </Link>
-          </p>
-        
+        </p>
       </CardFooter>
     </form>
-  )
-}
+  );
+};
